@@ -113,36 +113,49 @@ int main()
 
 
     float vertices[] = {
+        0.5f, 0.5f, 0.0f,
+        0.5f,-0.5f,0.0f,
         -0.5f, -0.5f, 0.0f,
-         0.5f, -0.5f, 0.0f,
-         0.0f,  0.5f, 0.0f
+        - 0.5f, 0.5f, 0.0f
+    };
+
+    unsigned int indices[] = {
+        0,1,3,// 第一个三角形
+        1,2,3// 第二个三角形
     };
 
     unsigned int VBO;
     unsigned int VAO;
-    // 创建顶点缓冲对象 vbo
-    glGenBuffers(1, &VBO);
+    unsigned int EBO;
     // 顶点数组对象
     glGenVertexArrays(1, &VAO);
-    // 绑定VAO
+    // 创建顶点缓冲对象 vbo
+    glGenBuffers(1, &VBO);
+    // 索引缓冲对象
+    glGenBuffers(1, &EBO);
+
+    // 先绑定VAO, 后续的VBO 会存储到 VAO 中
+    // 
     glBindVertexArray(VAO);
 
     // 绑定到 GL_ARRAY_BUFFER
     glBindBuffer(GL_ARRAY_BUFFER, VBO);
     //复制顶点到缓冲区
     glBufferData(GL_ARRAY_BUFFER, sizeof(vertices), vertices, GL_STATIC_DRAW);
+
+
+    glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, EBO);
+    glBufferData(GL_ELEMENT_ARRAY_BUFFER, sizeof(indices), indices, GL_STATIC_DRAW);
+
+
     /// 设置如何解析顶点数据
     // 参数0为 location=0 设置的位置
     glVertexAttribPointer(0, 3, GL_FLOAT, GL_FALSE, 3 * sizeof(float), 0);
     glEnableVertexAttribArray(0);
 
+
     glBindBuffer(GL_ARRAY_BUFFER, 0);
     glBindVertexArray(0);
-
-
-
-
-
 
 
     while (!glfwWindowShouldClose(window))
@@ -155,8 +168,8 @@ int main()
 
         glUseProgram(shaderProgram);
         glBindVertexArray(VAO);
-        glDrawArrays(GL_TRIANGLES, 0, 3);
-
+        //glDrawArrays(GL_TRIANGLES, 0, 3);
+        glDrawElements(GL_TRIANGLES, 6, GL_UNSIGNED_INT, 0);
 
         // 检查并调用事件
         glfwPollEvents();
@@ -164,6 +177,10 @@ int main()
         glfwSwapBuffers(window);
        
     }
+    glDeleteVertexArrays(1, &VAO);
+    glDeleteBuffers(1, &VBO);
+    glDeleteBuffers(1, &EBO);
+    glDeleteProgram(shaderProgram);
     glfwTerminate();
 
     return 0;
