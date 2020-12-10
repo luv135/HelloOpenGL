@@ -30,6 +30,16 @@ const char* fragmentShaderSource = "#version 330 core\n"
     "   FragColor = vec4(1.0f, 0.5f, 0.2f, 1.0f);\n"
     "}\n\0";
 
+
+
+const char* fragmentShaderSource2 = "#version 330 core\n"
+    "out vec4 FragColor;\n"
+    "void main()\n"
+    "{\n"
+    "   FragColor = vec4(1.0f, 1.0f, 0.2f, 1.0f);\n"
+    "}\n\0";
+
+
 int main()
 {
     glfwInit();
@@ -75,7 +85,6 @@ int main()
         std::cout << "ERROR " << infoLog << std::endl;
     }
 
-    
 
     unsigned int fragmentShader;
     // 创建片段着色器
@@ -89,6 +98,7 @@ int main()
         glGetShaderInfoLog(fragmentShader, 512, NULL, infoLog);
         std::cout << "ERROR " << infoLog << std::endl;
     }
+
 
     
     unsigned int shaderProgram;
@@ -106,9 +116,29 @@ int main()
         glGetShaderInfoLog(shaderProgram, 512, NULL, infoLog);
         std::cout << "ERROR " << infoLog << std::endl;
     }
+
+    unsigned int fragmentShader2;
+    fragmentShader2 = glCreateShader(GL_FRAGMENT_SHADER);
+    // 创建片段着色器
+    fragmentShader = glCreateShader(GL_FRAGMENT_SHADER);
+    glShaderSource(fragmentShader2, 1, &fragmentShaderSource2, NULL);
+    glCompileShader(fragmentShader2);
+
+
+    unsigned int shaderProgram2;
+    // 创建着色器程序
+    shaderProgram2 = glCreateProgram();
+    // 着色器附加到程序
+    glAttachShader(shaderProgram2, vertexShader);
+    glAttachShader(shaderProgram2, fragmentShader2);
+    // 链接
+    glLinkProgram(shaderProgram2);
+
+
     // 链接到程序后,不再需要,删除
     glDeleteShader(vertexShader);
     glDeleteShader(fragmentShader);
+    glDeleteShader(fragmentShader2);
 
 
 
@@ -120,7 +150,7 @@ int main()
     };
 
     unsigned int indices[] = {
-        0,1,3,// 第一个三角形
+        //0,1,3,// 第一个三角形
         1,2,3// 第二个三角形
     };
 
@@ -135,7 +165,6 @@ int main()
     glGenBuffers(1, &EBO);
 
     // 先绑定VAO, 后续的VBO 会存储到 VAO 中
-    // 
     glBindVertexArray(VAO);
 
     // 绑定到 GL_ARRAY_BUFFER
@@ -143,15 +172,33 @@ int main()
     //复制顶点到缓冲区
     glBufferData(GL_ARRAY_BUFFER, sizeof(vertices), vertices, GL_STATIC_DRAW);
 
-
     glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, EBO);
     glBufferData(GL_ELEMENT_ARRAY_BUFFER, sizeof(indices), indices, GL_STATIC_DRAW);
-
 
     /// 设置如何解析顶点数据
     // 参数0为 location=0 设置的位置
     glVertexAttribPointer(0, 3, GL_FLOAT, GL_FALSE, 3 * sizeof(float), 0);
     glEnableVertexAttribArray(0);
+
+    //-------------2--------------
+    float vertices2[] = {
+        0.5f, 0.5f,0.0f,
+        0.5f, -0.5f, 0.0f,
+        -0.5f, 0.5f, 0.0f
+    };
+    
+    unsigned int VAO2, VBO2;
+    glGenVertexArrays(1, &VAO2);
+    glGenBuffers(1, &VBO2);
+
+    glBindVertexArray(VAO2);
+
+    glBindBuffer(GL_ARRAY_BUFFER, VBO2);
+    glBufferData(GL_ARRAY_BUFFER, sizeof(vertices2), vertices2, GL_STATIC_DRAW);
+
+    glVertexAttribPointer(0, 3, GL_FLOAT, GL_FALSE, 3 * sizeof(float), 0);
+    glEnableVertexAttribArray(0);
+
 
 
     glBindBuffer(GL_ARRAY_BUFFER, 0);
@@ -169,7 +216,12 @@ int main()
         glUseProgram(shaderProgram);
         glBindVertexArray(VAO);
         //glDrawArrays(GL_TRIANGLES, 0, 3);
-        glDrawElements(GL_TRIANGLES, 6, GL_UNSIGNED_INT, 0);
+        glDrawElements(GL_TRIANGLES, 3, GL_UNSIGNED_INT, 0);
+
+        glUseProgram(shaderProgram2);
+
+        glBindVertexArray(VAO2);
+        glDrawArrays(GL_TRIANGLES, 0, 3);
 
         // 检查并调用事件
         glfwPollEvents();
@@ -181,6 +233,7 @@ int main()
     glDeleteBuffers(1, &VBO);
     glDeleteBuffers(1, &EBO);
     glDeleteProgram(shaderProgram);
+    glDeleteProgram(shaderProgram2);
     glfwTerminate();
 
     return 0;
