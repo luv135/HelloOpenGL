@@ -40,7 +40,7 @@ const char* fragmentShaderSource = "#version 330 core\n"
     "{\n"
     //"   FragColor = vec4(1.0f, 1.0f, 0.2f, 1.0f);\n"
     //"   FragColor = vec4(vertexColor,1.0f);\n"
-    "   FragColor = texture(ourTexture,TexCoord);\n"
+    "   FragColor = texture(ourTexture,TexCoord) * vec4(ourColor,1.0f);\n"
     "}\n\0";
 
 
@@ -146,9 +146,9 @@ int main()
     unsigned int VAO;
     unsigned int EBO;
     // 顶点数组对象
-    glGenVertexArrays(2, &VAO);
+    glGenVertexArrays(1, &VAO);
     // 创建顶点缓冲对象 vbo
-    glGenBuffers(2, &VBO);
+    glGenBuffers(1, &VBO);
     // 索引缓冲对象
     glGenBuffers(1, &EBO);
 
@@ -221,13 +221,11 @@ int main()
         glfwPollEvents();
         // 交换缓冲, 绘制
         glfwSwapBuffers(window);
-       
     }
     glDeleteVertexArrays(1, &VAO);
     glDeleteBuffers(1, &VBO);
     glDeleteBuffers(1, &EBO);
     glDeleteProgram(shaderProgram);
     glfwTerminate();
-
     return 0;
 }
