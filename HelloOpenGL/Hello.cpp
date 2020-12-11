@@ -84,7 +84,7 @@ int main()
         return -1;
     }
 
-    
+    //---------------------111---------------------------------
     unsigned int vertexShader;
     // 创建顶点着色器
     vertexShader = glCreateShader(GL_VERTEX_SHADER);
@@ -156,21 +156,21 @@ int main()
         1,2,3// 第二个三角形
     };
 
-    unsigned int VBO;
-    unsigned int VAO;
+    unsigned int VBO[2];
+    unsigned int VAO[2];
     unsigned int EBO;
     // 顶点数组对象
-    glGenVertexArrays(1, &VAO);
+    glGenVertexArrays(2, VAO);
     // 创建顶点缓冲对象 vbo
-    glGenBuffers(1, &VBO);
+    glGenBuffers(2, VBO);
     // 索引缓冲对象
     glGenBuffers(1, &EBO);
 
     // 先绑定VAO, 后续的VBO 会存储到 VAO 中
-    glBindVertexArray(VAO);
+    glBindVertexArray(VAO[0]);
 
     // 绑定到 GL_ARRAY_BUFFER
-    glBindBuffer(GL_ARRAY_BUFFER, VBO);
+    glBindBuffer(GL_ARRAY_BUFFER, VBO[0]);
     //复制顶点到缓冲区
     glBufferData(GL_ARRAY_BUFFER, sizeof(vertices), vertices, GL_STATIC_DRAW);
 
@@ -220,13 +220,10 @@ int main()
         -0.5f, 0.5f, 0.0f,      0.0f, 0.0f, 1.0f
     };
     
-    unsigned int VAO2, VBO2;
-    glGenVertexArrays(1, &VAO2);
-    glGenBuffers(1, &VBO2);
 
-    glBindVertexArray(VAO2);
+    glBindVertexArray(VAO[1]);
 
-    glBindBuffer(GL_ARRAY_BUFFER, VBO2);
+    glBindBuffer(GL_ARRAY_BUFFER, VBO[1]);
     glBufferData(GL_ARRAY_BUFFER, sizeof(vertices2), vertices2, GL_STATIC_DRAW);
 
     glVertexAttribPointer(0, 3, GL_FLOAT, GL_FALSE, 6 * sizeof(float), 0);
@@ -258,13 +255,13 @@ int main()
         glUniform4f(vertexColorLocation, 0.0f, greenValue, 0.0f, 1.0f);
 
 
-        glBindVertexArray(VAO);
+        glBindVertexArray(VAO[0]);
         //glDrawArrays(GL_TRIANGLES, 0, 3);
         glDrawElements(GL_TRIANGLES, 3, GL_UNSIGNED_INT, 0);
 
         glUseProgram(shaderProgram2);
 
-        glBindVertexArray(VAO2);
+        glBindVertexArray(VAO[1]);
         glDrawArrays(GL_TRIANGLES, 0, 3);
 
         // 检查并调用事件
@@ -273,8 +270,8 @@ int main()
         glfwSwapBuffers(window);
        
     }
-    glDeleteVertexArrays(1, &VAO);
-    glDeleteBuffers(1, &VBO);
+    glDeleteVertexArrays(2, VAO);
+    glDeleteBuffers(2, VBO);
     glDeleteBuffers(1, &EBO);
     glDeleteProgram(shaderProgram);
     glDeleteProgram(shaderProgram2);
