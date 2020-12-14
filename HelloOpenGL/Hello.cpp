@@ -39,17 +39,19 @@ const char* vertexShaderSource = "#version 330 core\n"
 "layout (location = 2) in vec2 aTexCoord;\n"
 "out vec3 ourColor;\n"   //定义颜色提供给片段着色器
 "out vec2 TexCoord;\n"
+"uniform mat4 transform;\n"
 "void main()\n"
 "{\n"
-"   gl_Position = vec4(aPos, 1.0);\n"
+"   gl_Position = transform * vec4(aPos, 1.0);\n"
 "   ourColor = aColor;\n"
-"   TexCoord  = aTexCoord;\n"
+//"   TexCoord  = aTexCoord;\n"
+"	TexCoord = vec2(aTexCoord.x, 1.0 - aTexCoord.y);"
 "}\0";
 
 
 const char* fragmentShaderSource = "#version 330 core\n"
 "out vec4 FragColor;\n"
-"in vec3 ourColor;\n"    //获取顶点着色器中定义的颜色,名称相同即可
+//"in vec3 ourColor;\n"    //获取顶点着色器中定义的颜色,名称相同即可
 "in vec2 TexCoord;\n"
 "uniform sampler2D texture1;\n"       //纹理,默认为0, https://learnopengl-cn.github.io/01%20Getting%20started/06%20Textures/
 "uniform sampler2D texture2;\n"
@@ -234,6 +236,15 @@ int main()
 	glUniform1i(glGetUniformLocation(shaderProgram, "texture1"), 0);
 	glUniform1i(glGetUniformLocation(shaderProgram, "texture2"), 5);
 
+	// 矩阵变化
+	glm::mat4 trans = glm::mat4(1.0f);
+	// 矩阵执行是从右到左的,如下执行顺序是先缩放再旋转
+	trans = glm::rotate(trans, glm::radians(90.f), glm::vec3(0.0, 0.0, 1.0)/*绕Z轴旋转*/);
+	trans = glm::scale(trans, glm::vec3(0.5, 0.5, 0.5));
+
+	glUniformMatrix4fv(glGetUniformLocation(shaderProgram, "transform"), 1,GL_FALSE,glm::value_ptr(trans));
+
+
 	while (!glfwWindowShouldClose(window))
 	{
 		// 输入
@@ -246,9 +257,15 @@ int main()
 		glBindTexture(GL_TEXTURE_2D, texture1);
 		glActiveTexture(GL_TEXTURE5);	//glUniform1i 对应"...texture2"), 5);
 		glBindTexture(GL_TEXTURE_2D, texture2);
-
+		glm::mat4 trans = glm::mat4(1.0f);
+		// 矩阵执行是从右到左的,如下执行顺序是旋转再移动
+		//trans = glm::translate(trans, glm::vec3(0.5f, -0.5f, 0.0f));
+		trans = glm::rotate(trans, (float)glfwGetTime(), glm::vec3(0.0, 0.0, 1.0)/*绕Z轴旋转*/);
+		float ff = (int)glfwGetTime() % 10 / 10.0;
+		std::cout << "scale" << ff << std::endl;
+		trans = glm::scale(trans, glm::vec3(ff, ff, ff));
 		glUseProgram(shaderProgram);
-
+		glUniformMatrix4fv(glGetUniformLocation(shaderProgram, "transform"), 1, GL_FALSE, glm::value_ptr(trans));
 		glBindVertexArray(VAO);
 		//glDrawArrays(GL_TRIANGLES, 0, 3);
 		glDrawElements(GL_TRIANGLES, 6, GL_UNSIGNED_INT, 0);
