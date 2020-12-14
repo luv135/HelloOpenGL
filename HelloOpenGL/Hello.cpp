@@ -4,6 +4,22 @@
 #include <GLFW/glfw3.h>
 #include <iostream>
 #include "stb_image.h"
+#include <glm/glm.hpp>
+#include <glm/gtc/matrix_transform.hpp>
+#include <glm/gtc/type_ptr.hpp>
+
+
+void matest() 
+{
+	glm::vec4 vec(1.0f, 0.0f, 0.0f, 1.0f);
+	glm::mat4 trans;
+	trans = glm::mat4(1.0f);
+	trans = glm::translate(trans, glm::vec3(1.0f, 1.0f, 0.0f));
+	vec = trans * vec;
+	std::cout << vec.x << vec.y << vec.z << std::endl;
+}
+
+
 
 void framebuffer_size_callback(GLFWwindow* window, int width, int height)
 {
@@ -73,6 +89,7 @@ void textureCreate(const char* file_path, unsigned int* texture)
 
 int main()
 {
+	matest();
 	glfwInit();
 	glfwWindowHint(GLFW_CONTEXT_VERSION_MAJOR, 3);
 	glfwWindowHint(GLFW_CONTEXT_VERSION_MINOR, 3);
@@ -215,7 +232,7 @@ int main()
 
 	glUseProgram(shaderProgram);
 	glUniform1i(glGetUniformLocation(shaderProgram, "texture1"), 0);
-	glUniform1i(glGetUniformLocation(shaderProgram, "texture2"), 1);
+	glUniform1i(glGetUniformLocation(shaderProgram, "texture2"), 5);
 
 	while (!glfwWindowShouldClose(window))
 	{
@@ -227,7 +244,7 @@ int main()
 
 		glActiveTexture(GL_TEXTURE0);
 		glBindTexture(GL_TEXTURE_2D, texture1);
-		glActiveTexture(GL_TEXTURE1);
+		glActiveTexture(GL_TEXTURE5);	//glUniform1i ¶ÔÓ¦"...texture2"), 5);
 		glBindTexture(GL_TEXTURE_2D, texture2);
 
 		glUseProgram(shaderProgram);
