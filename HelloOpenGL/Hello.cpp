@@ -11,7 +11,7 @@
 float screenWidth = 800.0f;
 float screenHeight = 600.0f;
 
-void matest() 
+void matest()
 {
 	glm::vec4 vec(1.0f, 0.0f, 0.0f, 1.0f);
 	glm::mat4 trans;
@@ -92,11 +92,11 @@ void textureCreate(const char* file_path, unsigned int* texture)
 	stbi_image_free(data);
 }
 
-void bindUniformMatrix4f(int program,const char* name, glm::mat4 mat4)
+void bindUniformMatrix4f(int program, const char* name, glm::mat4 mat4)
 {
 	glUseProgram(program);
 	int location = glGetUniformLocation(program, name);
-	std::cout << "location = " << location << std::endl;
+	//std::cout << "location = " << location << std::endl;
 	glUniformMatrix4fv(location, 1, GL_FALSE, glm::value_ptr(mat4));
 }
 
@@ -320,14 +320,26 @@ int main()
 	bindUniformMatrix4f(shaderProgram, "model", model);
 	bindUniformMatrix4f(shaderProgram, "view", view);
 	bindUniformMatrix4f(shaderProgram, "projection", projection);
-
+	// 启用深度测试
 	glEnable(GL_DEPTH_TEST);
-
+	glm::vec3 cubePositions[] = {
+	  glm::vec3(0.0f,  0.0f,  0.0f),
+	  glm::vec3(2.0f,  5.0f, -15.0f),
+	  glm::vec3(-1.5f, -2.2f, -2.5f),
+	  glm::vec3(-3.8f, -2.0f, -12.3f),
+	  glm::vec3(2.4f, -0.4f, -3.5f),
+	  glm::vec3(-1.7f,  3.0f, -7.5f),
+	  glm::vec3(1.3f, -2.0f, -2.5f),
+	  glm::vec3(1.5f,  2.0f, -2.5f),
+	  glm::vec3(1.5f,  0.2f, -1.5f),
+	  glm::vec3(-1.3f,  1.0f, -1.5f)
+	};
 	while (!glfwWindowShouldClose(window))
 	{
 		// 输入
 		processInput(window);
 		glClearColor(0.2f, .3f, .3f, 1.0f);
+		// 清除深度缓冲
 		glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
 
 		glActiveTexture(GL_TEXTURE0);
@@ -344,10 +356,17 @@ int main()
 		glUseProgram(shaderProgram);
 		//glUniformMatrix4fv(glGetUniformLocation(shaderProgram, "transform"), 1, GL_FALSE, glm::value_ptr(trans));
 		glBindVertexArray(VAO);
-		glDrawArrays(GL_TRIANGLES, 0, 36);
+
+		for (unsigned int i = 0; i < 10; i++)
+		{
+			glm::mat4 model = glm::mat4(1.0f);
+			model = glm::translate(model, cubePositions[i]);
+			float angle = 20.0f * (i+1);
+			model = glm::rotate(model, (float)glfwGetTime() * glm::radians(angle), glm::vec3(1.0f, 0.3f, 0.5f));
+			bindUniformMatrix4f(shaderProgram, "model", model);
+			glDrawArrays(GL_TRIANGLES, 0, 36);
+		}
 		//glDrawElements(GL_TRIANGLES, 6, GL_UNSIGNED_INT, 0);
-		model = glm::rotate(glm::mat4(1.0f), (float)glfwGetTime() * glm::radians(50.0f), glm::vec3(0.5f, 1.0f, 0.0f));
-		bindUniformMatrix4f(shaderProgram, "model", model);
 
 		// 检查并调用事件
 		glfwPollEvents();
