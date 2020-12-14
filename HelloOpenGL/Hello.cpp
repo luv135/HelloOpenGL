@@ -8,6 +8,8 @@
 #include <glm/gtc/matrix_transform.hpp>
 #include <glm/gtc/type_ptr.hpp>
 
+float screenWidth = 800.0f;
+float screenHeight = 600.0f;
 
 void matest() 
 {
@@ -35,15 +37,18 @@ void processInput(GLFWwindow* window)
 
 const char* vertexShaderSource = "#version 330 core\n"
 "layout (location = 0) in vec3 aPos;\n"
-"layout (location = 1) in vec3 aColor;\n"
+//"layout (location = 1) in vec3 aColor;\n"
 "layout (location = 2) in vec2 aTexCoord;\n"
-"out vec3 ourColor;\n"   //定义颜色提供给片段着色器
+//"out vec3 ourColor;\n"   //定义颜色提供给片段着色器
 "out vec2 TexCoord;\n"
-"uniform mat4 transform;\n"
+"uniform mat4 model;\n"
+"uniform mat4 view;\n"
+"uniform mat4 projection;\n"
 "void main()\n"
 "{\n"
-"   gl_Position = transform * vec4(aPos, 1.0);\n"
-"   ourColor = aColor;\n"
+"   gl_Position = projection * view * model * vec4(aPos, 1.0);\n"
+//"   gl_Position = vec4(aPos, 1.0);\n"
+//"   ourColor = aColor;\n"
 //"   TexCoord  = aTexCoord;\n"
 "	TexCoord = vec2(aTexCoord.x, 1.0 - aTexCoord.y);"
 "}\0";
@@ -87,11 +92,18 @@ void textureCreate(const char* file_path, unsigned int* texture)
 	stbi_image_free(data);
 }
 
+void bindUniformMatrix4f(int program,const char* name, glm::mat4 mat4)
+{
+	glUseProgram(program);
+	int location = glGetUniformLocation(program, name);
+	std::cout << "location = " << location << std::endl;
+	glUniformMatrix4fv(location, 1, GL_FALSE, glm::value_ptr(mat4));
+}
+
 
 
 int main()
 {
-	matest();
 	glfwInit();
 	glfwWindowHint(GLFW_CONTEXT_VERSION_MAJOR, 3);
 	glfwWindowHint(GLFW_CONTEXT_VERSION_MINOR, 3);
@@ -99,7 +111,7 @@ int main()
 	// Mac OS X 需要下面代码
 	//glfwWindowHint(GLFW_OPENGL_FORWARD_COMPAT, GL_TRUE);
 
-	GLFWwindow* window = glfwCreateWindow(800, 600, "LearnOpenGL", NULL, NULL);
+	GLFWwindow* window = glfwCreateWindow(screenWidth, screenHeight, "LearnOpenGL", NULL, NULL);
 	if (window == NULL)
 	{
 		std::cout << "Failed to create GLFW window" << std::endl;
@@ -175,18 +187,67 @@ int main()
 
 
 
+	//float vertices[] = {
+	//	// 位置                 //颜色                //纹理
+	//	0.5f, 0.5f, 0.0f,       1.0f,0.0f,0.0f,     1.0f, 1.0f,
+	//	0.5f,-0.5f,0.0f,        0.0f,1.0f,0.0f,     1.0f,0.0f,
+	//	-0.5f, -0.5f, 0.0f,     0.0f,0.0f,1.0f,     0.0f, 0.0f,
+	//	-0.5f, 0.5f, 0.0f,      2.0f,1.0f,0.0f,     0.0f, 1.0f
+	//};
+
+
+
+	//unsigned int indices[] = {
+	//	0,1,3,// 第一个三角形
+	//	1,2,3// 第二个三角形
+	//};
+
+
 	float vertices[] = {
-		// 位置                 //颜色                //纹理
-		0.5f, 0.5f, 0.0f,       1.0f,0.0f,0.0f,     1.0f, 1.0f,
-		0.5f,-0.5f,0.0f,        0.0f,1.0f,0.0f,     1.0f,0.0f,
-		-0.5f, -0.5f, 0.0f,     0.0f,0.0f,1.0f,     0.0f, 0.0f,
-		-0.5f, 0.5f, 0.0f,      2.0f,1.0f,0.0f,     0.0f, 1.0f
+	-0.5f, -0.5f, -0.5f,  0.0f, 0.0f,
+	 0.5f, -0.5f, -0.5f,  1.0f, 0.0f,
+	 0.5f,  0.5f, -0.5f,  1.0f, 1.0f,
+	 0.5f,  0.5f, -0.5f,  1.0f, 1.0f,
+	-0.5f,  0.5f, -0.5f,  0.0f, 1.0f,
+	-0.5f, -0.5f, -0.5f,  0.0f, 0.0f,
+
+	-0.5f, -0.5f,  0.5f,  0.0f, 0.0f,
+	 0.5f, -0.5f,  0.5f,  1.0f, 0.0f,
+	 0.5f,  0.5f,  0.5f,  1.0f, 1.0f,
+	 0.5f,  0.5f,  0.5f,  1.0f, 1.0f,
+	-0.5f,  0.5f,  0.5f,  0.0f, 1.0f,
+	-0.5f, -0.5f,  0.5f,  0.0f, 0.0f,
+
+	-0.5f,  0.5f,  0.5f,  1.0f, 0.0f,
+	-0.5f,  0.5f, -0.5f,  1.0f, 1.0f,
+	-0.5f, -0.5f, -0.5f,  0.0f, 1.0f,
+	-0.5f, -0.5f, -0.5f,  0.0f, 1.0f,
+	-0.5f, -0.5f,  0.5f,  0.0f, 0.0f,
+	-0.5f,  0.5f,  0.5f,  1.0f, 0.0f,
+
+	 0.5f,  0.5f,  0.5f,  1.0f, 0.0f,
+	 0.5f,  0.5f, -0.5f,  1.0f, 1.0f,
+	 0.5f, -0.5f, -0.5f,  0.0f, 1.0f,
+	 0.5f, -0.5f, -0.5f,  0.0f, 1.0f,
+	 0.5f, -0.5f,  0.5f,  0.0f, 0.0f,
+	 0.5f,  0.5f,  0.5f,  1.0f, 0.0f,
+
+	-0.5f, -0.5f, -0.5f,  0.0f, 1.0f,
+	 0.5f, -0.5f, -0.5f,  1.0f, 1.0f,
+	 0.5f, -0.5f,  0.5f,  1.0f, 0.0f,
+	 0.5f, -0.5f,  0.5f,  1.0f, 0.0f,
+	-0.5f, -0.5f,  0.5f,  0.0f, 0.0f,
+	-0.5f, -0.5f, -0.5f,  0.0f, 1.0f,
+
+	-0.5f,  0.5f, -0.5f,  0.0f, 1.0f,
+	 0.5f,  0.5f, -0.5f,  1.0f, 1.0f,
+	 0.5f,  0.5f,  0.5f,  1.0f, 0.0f,
+	 0.5f,  0.5f,  0.5f,  1.0f, 0.0f,
+	-0.5f,  0.5f,  0.5f,  0.0f, 0.0f,
+	-0.5f,  0.5f, -0.5f,  0.0f, 1.0f
 	};
 
-	unsigned int indices[] = {
-		0,1,3,// 第一个三角形
-		1,2,3// 第二个三角形
-	};
+
 
 	unsigned int VBO;
 	unsigned int VAO;
@@ -206,19 +267,19 @@ int main()
 	//复制顶点到缓冲区
 	glBufferData(GL_ARRAY_BUFFER, sizeof(vertices), vertices, GL_STATIC_DRAW);
 
-	glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, EBO);
-	glBufferData(GL_ELEMENT_ARRAY_BUFFER, sizeof(indices), indices, GL_STATIC_DRAW);
+	//glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, EBO);
+	//glBufferData(GL_ELEMENT_ARRAY_BUFFER, sizeof(indices), indices, GL_STATIC_DRAW);
 
 	/// 设置如何解析顶点数据
 	// 参数0为 location=0 设置的位置
 	// 参数说明: 0 location=0 设置的位置, 3 表示vec3  //步长             //起始位置
-	glVertexAttribPointer(0, 3, GL_FLOAT, GL_FALSE, 8 * sizeof(float), 0);
+	glVertexAttribPointer(0, 3, GL_FLOAT, GL_FALSE, 5 * sizeof(float), 0);
 	glEnableVertexAttribArray(0);
 	// 颜色关联
-	glVertexAttribPointer(1, 3, GL_FLOAT, GL_FALSE, 8 * sizeof(float), (void*)(3 * sizeof(float)));
-	glEnableVertexAttribArray(1);
+	//glVertexAttribPointer(1, 3, GL_FLOAT, GL_FALSE, 8 * sizeof(float), (void*)(3 * sizeof(float)));
+	//glEnableVertexAttribArray(1);
 	// 纹理
-	glVertexAttribPointer(2, 2, GL_FLOAT, GL_FALSE, 8 * sizeof(float), (void*)(6 * sizeof(float)));
+	glVertexAttribPointer(2, 2, GL_FLOAT, GL_FALSE, 5 * sizeof(float), (void*)(3 * sizeof(float)));
 	glEnableVertexAttribArray(2);
 
 	//glBindBuffer(GL_ARRAY_BUFFER, 0);
@@ -237,38 +298,56 @@ int main()
 	glUniform1i(glGetUniformLocation(shaderProgram, "texture2"), 5);
 
 	// 矩阵变化
-	glm::mat4 trans = glm::mat4(1.0f);
+	//glm::mat4 trans = glm::mat4(1.0f);
 	// 矩阵执行是从右到左的,如下执行顺序是先缩放再旋转
-	trans = glm::rotate(trans, glm::radians(90.f), glm::vec3(0.0, 0.0, 1.0)/*绕Z轴旋转*/);
-	trans = glm::scale(trans, glm::vec3(0.5, 0.5, 0.5));
+	//trans = glm::rotate(trans, glm::radians(-50.f), glm::vec3(1, 0.0, 0.0/*绕Z轴旋转*/));
+	//trans = glm::scale(trans, glm::vec3(0.5, 0.5, 0.5));
+	//glUniformMatrix4fv(glGetUniformLocation(shaderProgram, "transform"), 1,GL_FALSE,glm::value_ptr(trans));
 
-	glUniformMatrix4fv(glGetUniformLocation(shaderProgram, "transform"), 1,GL_FALSE,glm::value_ptr(trans));
+	// 坐标系
+	//模型矩阵
+	glm::mat4 model = glm::mat4(1.0f);
+	// x轴旋转
+	model = glm::rotate(model, glm::radians(-55.0f), glm::vec3(1.0f, 0.0f, 0.0f));
 
+	// 观察矩阵
+	glm::mat4 view = glm::mat4(1.0f);
+	view = glm::translate(view, glm::vec3(0.0f, 0.0f, -3.0f));
+
+	glm::mat4 projection = glm::mat4(1.0f);
+	projection = glm::perspective(glm::radians(45.0f), screenWidth / screenHeight, 0.1f, 100.0f);
+
+	bindUniformMatrix4f(shaderProgram, "model", model);
+	bindUniformMatrix4f(shaderProgram, "view", view);
+	bindUniformMatrix4f(shaderProgram, "projection", projection);
+
+	glEnable(GL_DEPTH_TEST);
 
 	while (!glfwWindowShouldClose(window))
 	{
 		// 输入
 		processInput(window);
-
 		glClearColor(0.2f, .3f, .3f, 1.0f);
-		glClear(GL_COLOR_BUFFER_BIT);
+		glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
 
 		glActiveTexture(GL_TEXTURE0);
 		glBindTexture(GL_TEXTURE_2D, texture1);
 		glActiveTexture(GL_TEXTURE5);	//glUniform1i 对应"...texture2"), 5);
 		glBindTexture(GL_TEXTURE_2D, texture2);
-		glm::mat4 trans = glm::mat4(1.0f);
+		//glm::mat4 trans = glm::mat4(1.0f);
 		// 矩阵执行是从右到左的,如下执行顺序是旋转再移动
-		//trans = glm::translate(trans, glm::vec3(0.5f, -0.5f, 0.0f));
-		trans = glm::rotate(trans, (float)glfwGetTime(), glm::vec3(0.0, 0.0, 1.0)/*绕Z轴旋转*/);
-		float ff = (int)glfwGetTime() % 10 / 10.0;
-		std::cout << "scale" << ff << std::endl;
-		trans = glm::scale(trans, glm::vec3(ff, ff, ff));
+		////trans = glm::translate(trans, glm::vec3(0.5f, -0.5f, 0.0f));
+		//trans = glm::rotate(trans, (float)glfwGetTime(), glm::vec3(1.0, 0.0, 0.0)/*绕Z轴旋转*/);
+		//float ff = (int)glfwGetTime() % 10 / 10.0;
+		//std::cout << "scale" << ff << std::endl;
+		//trans = glm::scale(trans, glm::vec3(ff, ff, ff));
 		glUseProgram(shaderProgram);
-		glUniformMatrix4fv(glGetUniformLocation(shaderProgram, "transform"), 1, GL_FALSE, glm::value_ptr(trans));
+		//glUniformMatrix4fv(glGetUniformLocation(shaderProgram, "transform"), 1, GL_FALSE, glm::value_ptr(trans));
 		glBindVertexArray(VAO);
-		//glDrawArrays(GL_TRIANGLES, 0, 3);
-		glDrawElements(GL_TRIANGLES, 6, GL_UNSIGNED_INT, 0);
+		glDrawArrays(GL_TRIANGLES, 0, 36);
+		//glDrawElements(GL_TRIANGLES, 6, GL_UNSIGNED_INT, 0);
+		model = glm::rotate(glm::mat4(1.0f), (float)glfwGetTime() * glm::radians(50.0f), glm::vec3(0.5f, 1.0f, 0.0f));
+		bindUniformMatrix4f(shaderProgram, "model", model);
 
 		// 检查并调用事件
 		glfwPollEvents();
